@@ -610,6 +610,33 @@ TXModuleBase {		// Base Class for all modules
 		});
 	}
 
+	getSynthDef { arg name = "cloned TX";
+		"----------------------------------------------------------------------".postln;
+		("loading..."+name).postln;
+
+		// check for empty synthDefFunc - some modules don't have a synthdef
+		if (synthDefFunc.notNil, {
+			// create arrays for mapping synth arguments to busses
+			this.class.arrAudSCInBusSpecs.do({ arg item, ind;
+				arrAudSCInBusMappings = arrAudSCInBusMappings.add(item.at(2));// synth arg index no
+				arrAudSCInBusMappings = arrAudSCInBusMappings.add(arrAudSCInBusses.at(ind).index);// bus index no
+			});
+			this.myArrCtlSCInBusSpecs.do({ arg item, ind;
+				if (item.at(3) != 0, {
+					// create arrays for mapping synth arguments to busses
+					arrCtlSCInBusMappings = arrCtlSCInBusMappings.add(item.at(2));// synth arg index no
+					arrCtlSCInBusMappings = arrCtlSCInBusMappings
+					.add("c" ++ arrCtlSCInBusses.at(ind).index.asString);// bus index no
+				});
+			});
+			//	set and update synthDefRates based on module options
+			synthDefRates = arrSynthArgSpecs.collect({arg item, i; item.at(2)});
+			synthDefRates = synthDefRates ++ [0, 0, 0, 0, 0, 0, 0];   // add dummy values for safety
+
+			^SynthDef(name, synthDefFunc, synthDefRates).add;
+		});
+	}
+
 	makeSynth {
 		var arrSynthArgs, bundle;
 		// build arrSynthArgs
